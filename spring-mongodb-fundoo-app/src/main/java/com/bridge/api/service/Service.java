@@ -14,7 +14,5 @@ public interface Service {
 
 	boolean isAvilabe(String email);
 
-	void saveNote(NoteDto noteDto, String token);
-
-	String updateNote(NoteDto noteDto);
+	
 }

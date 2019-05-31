@@ -2,6 +2,8 @@ package com.bridge.api.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import javax.mail.MessagingException;
@@ -65,7 +67,6 @@ public class ServiceImpl implements Service {
 		email.setSubject("Email Verification ");
 		try {
 			mailService.send(email, idToken);
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -119,24 +120,5 @@ public class ServiceImpl implements Service {
 		return false;
 	}
 
-	/*Method for Save a note in Mongod */
-	@Override
-	public void saveNote(NoteDto noteDto, String token) {
-		String noteId = userToken.tokenVerify(token);
-		Note note = mapper.map(noteDto, Note.class);
-		note.setCurrentTime(LocalDateTime.now());
-		note.setUpdatedTime(LocalDateTime.now());
-		note.setUserId(noteId);
-		
-		noteRepository.save(note);
-		Optional<User> user = userRepository.findById(noteId);
-		
-	}
-
-	@Override
-	public String updateNote(NoteDto noteDto) {
-		
-		return null;
-	}
-
+	
 }
