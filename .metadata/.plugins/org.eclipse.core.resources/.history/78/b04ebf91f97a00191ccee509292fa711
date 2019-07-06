@@ -1,9 +1,0 @@
-package com.bridge.service;
-
-import com.bridge.dto.UserDto;
-
-public interface Service {
-
-	void saveService(UserDto userDto);
-
-}

@@ -1,9 +1,0 @@
-package com.bridge.mongo.reposetory;
-
-import org.springframework.data.mongodb.repository.MongoRepository;
-
-
-
-public class UserReposetory extends MongoRepository<Users, Integer>{
-
-}

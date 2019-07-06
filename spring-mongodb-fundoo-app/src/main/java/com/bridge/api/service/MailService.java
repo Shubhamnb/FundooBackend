@@ -22,19 +22,19 @@ public class MailService {
 		MimeMessageHelper helper = new MimeMessageHelper(message);
 
 		helper.setTo(email.getTo());
-		helper.setText("http://localhost:8080/user/emailvalidation?id=" + id);
+		helper.setText("http://localhost:8080/users/emailvalidation?id=" + id);
 		helper.setSubject("Hi");
 
 		javaMailSender.send(message);
 
 	}
 
-	public void sendFogetPassWordLink(Email email) throws MessagingException {
+	public void sendFogetPassWordLink(Email email, String token) throws MessagingException {
 		MimeMessage message = javaMailSender.createMimeMessage();
 		MimeMessageHelper helper = new MimeMessageHelper(message);
 
 		helper.setTo(email.getTo());
-		helper.setText("http://localhost:8080/user/change");
+		helper.setText("http://localhost:4200/resetpassword/"+token);
 		helper.setSubject(email.getSubject());
 
 		javaMailSender.send(message);

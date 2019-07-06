@@ -1,0 +1,5 @@
+package com.bridge.api.config;
+
+public class ElasticSearch {
+
+}

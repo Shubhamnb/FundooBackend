@@ -1,5 +1,6 @@
 package com.bridge.api.service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.bridge.api.dto.LabelDto;
 import com.bridge.api.dto.NoteDto;
+import com.bridge.api.elasticservice.ElasticService;
 import com.bridge.api.model.Label;
 import com.bridge.api.model.Note;
 import com.bridge.api.model.User;
@@ -21,6 +23,7 @@ import com.bridge.api.mongo.reposetory.LabelRepository;
 import com.bridge.api.mongo.reposetory.NoteRepository;
 import com.bridge.api.mongo.reposetory.UserRepository;
 import com.bridge.api.util.UserToken;
+
 
 @Service
 public class NoteServiceImpl implements NoteService {
@@ -47,15 +50,23 @@ public class NoteServiceImpl implements NoteService {
 	@Autowired
 	NoteRepository noteRepository;
 
+	
+	
+	  @Autowired 
+	  ElasticService elasticService;
+	 
+	
+	
 	/* Method for Save a note in Mongod */
 	@Override
-	public void createNote(NoteDto noteDto, String token) {
+	public void createNote(NoteDto noteDto, String token) throws IOException {
 		String userId = userToken.tokenVerify(token);
 		Note note = mapper.map(noteDto, Note.class);
 		note.setCurrentTime(LocalDateTime.now());
 		note.setUpdatedTime(LocalDateTime.now());
 		note.setUserId(userId);
-		noteRepository.save(note);
+		Note noteElastic = noteRepository.save(note);
+		elasticService.createNote(noteElastic);
 		System.out.println(userId);
 		Optional<User> user = userRepository.findById(userId);
 		if (user.isPresent()) {
@@ -75,7 +86,7 @@ public class NoteServiceImpl implements NoteService {
 	}
 
 	@Override
-	public String updateNote(NoteDto noteDto, String noteId, String token) {
+	public String updateNote(NoteDto noteDto, String noteId, String token) throws Exception {
 		String userId = userToken.tokenVerify(token);
 
 		Note note = noteRepository.findByNoteIdAndUserId(noteId, userId);
@@ -85,9 +96,15 @@ public class NoteServiceImpl implements NoteService {
 			note.setDiscription(noteDto.getDiscription());
 			note.setUpdatedTime(LocalDateTime.now());
 			note.setCurrentTime(LocalDateTime.now());
-
+			
+			
+		//	noteRepository.deleteById(noteId);
 			Note noteCheck = noteRepository.save(note);
-
+			
+			
+			elasticService.upDateNote(noteCheck);
+			
+			
 			if (noteCheck != null)
 				return "Note Updated Successfully";
 			else {
@@ -99,7 +116,7 @@ public class NoteServiceImpl implements NoteService {
 	}
 
 	@Override
-	public String delete(String noteId) {
+	public String delete(String noteId) throws IOException {
 		Optional<Note> note = noteRepository.findById(noteId);
 		System.out.println(note);
 		if (note.isPresent()) {
@@ -123,6 +140,7 @@ public class NoteServiceImpl implements NoteService {
 					userRepository.save(user.get());
 				}
 				noteRepository.deleteById(noteId);
+				elasticService.deleteNote(noteId);
 				return "Note Deleted";
 			} else {
 				return "Beacause Note not deleted";
@@ -186,6 +204,7 @@ public class NoteServiceImpl implements NoteService {
 				note.get().setTrash(true);
 			}
 			noteRepository.save(note.get());
+			
 		}
 		return "pin state changed";
 	}
@@ -226,11 +245,12 @@ public class NoteServiceImpl implements NoteService {
 		String userId = userToken.tokenVerify(token);
 		labelRepository.deleteById(labelId);
 		Optional<Label> label = labelRepository.findById(labelId);
-		if(label.isEmpty())
+		if (label.isEmpty())
 			return "Label Deleted";
 		else
 			return "Some problem accurs in label deletion";
 	}
+	 
 
 	@Override
 	public String retriveLabel(String labelId, String token) {
@@ -243,24 +263,28 @@ public class NoteServiceImpl implements NoteService {
 	}
 
 	@Override
-	public String addLabelToNote(LabelDto labelDto, String noteId) {
+	public String addLabelToNote(String noteId,String labelId) {
 		
 		Optional<Note> note = noteRepository.findById(noteId);
 		
-		Label label = mapper.map(labelDto, Label.class);
+		Optional<Label> label = labelRepository.findById(labelId);
 		
 		
-		label.setUserId(note.get().getUserId());
+		
 		if(note.isPresent()) {
 			List<Label> labelList = note.get().getLabelList();
-			if (labelList != null) {
-				labelList.add(label);
-				note.get().setLabelList(labelList);
-			}else {
-				List<Label> newLabelList = new ArrayList<Label>();
-				newLabelList.add(label);
-				note.get().setLabelList(newLabelList);
-			}
+		
+				if (labelList != null && !labelList.contains(label)) {
+					labelList.add(label.get());
+					note.get().setLabelList(labelList);
+				} else {
+					if(labelList.contains(label))
+						return "Label is alreday exist";
+					List<Label> newLabelList = new ArrayList<Label>();
+					newLabelList.add(label.get());
+					note.get().setLabelList(newLabelList);
+				}
+			
 			if(noteRepository.save(note.get()) != null) {
 				return "Label Added to Note Successfully";
 			}else {

@@ -1,0 +1,5 @@
+package com.bridge.api.dto;
+
+public class PasswordDto {
+
+}

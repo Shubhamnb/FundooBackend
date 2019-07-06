@@ -1,7 +1,10 @@
 package com.bridge.api.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,24 +27,25 @@ public class LabelController {
 		return service.createLabel(labelDto,token);
 	}
 	
-	@PostMapping("/update")
+	@PutMapping("/update")
 	public String update(@RequestBody LabelDto labelDto,@RequestParam String token) {
 		
 		return service.updateLabel(labelDto,token);
 	}
 	
-	@PostMapping("/delete")
-	public String delete(@RequestParam String labelId,@RequestParam String token) {
-		
-		return service.deleteLabel(labelId,token);
+	@DeleteMapping("/delete")
+	public String delete(@RequestParam String labelId, @RequestParam String token) {
+
+		return service.deleteLabel(labelId, token);
 	}
-	@PostMapping("/retrive")
+	 
+	@GetMapping("/retrive")
 	public String retrive(@RequestParam String labelId,@RequestParam String token) {
 		return service.retriveLabel(labelId,token);
 	}
 	@PostMapping("/addLabelToNotes")
-	public String addLabelToNote(@RequestBody LabelDto labelDto, @RequestParam String noteId) {
-		return service.addLabelToNote(labelDto, noteId);
+	public String addLabelToNote(@RequestParam String labelId, @RequestParam String noteId) {
+		return service.addLabelToNote(labelId, noteId);
 		
 	}
 

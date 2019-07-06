@@ -1,23 +1,21 @@
 package com.bridge.api.dto;
 
-import java.time.LocalDate;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 
 public class UserDto {
-	@Id
-	private String userId;
+	
+	private String fname;
 	private String email;
 	private String password;
 	private String address;
 	
-	public String getUserId() {
-		return userId;
+	
+	public String getFname() {
+		return fname;
 	}
-	public void setUserId(String userId) {
-		this.userId = userId;
+	public void setFname(String fname) {
+		this.fname = fname;
 	}
 	public String getEmail() {
 		return email;
@@ -39,9 +37,11 @@ public class UserDto {
 	}
 	@Override
 	public String toString() {
-		return "UserDto [userId=" + userId + ", email=" + email + ", password=" + password + ", address=" + address
-				+ "]";
+		return "UserDto [fname=" + fname + ", email=" + email + ", password=" + password + ", address=" + address + "]";
 	}
+	
+	
+	
 	
 
 }

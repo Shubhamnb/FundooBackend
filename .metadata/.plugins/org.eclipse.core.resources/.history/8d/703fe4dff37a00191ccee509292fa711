@@ -1,5 +1,0 @@
-package com.bridge.service;
-
-public interface Service {
-
-}

@@ -1,9 +1,0 @@
-package com.bridge.dao;
-
-import com.bridge.dto.UserDto;
-
-public interface Dao {
-
-	void saveDao(UserDto userDto);
-
-}

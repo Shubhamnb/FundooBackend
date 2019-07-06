@@ -1,7 +1,0 @@
-package com.bridge.api.service;
-
-import com.bridge.api.model.User;
-
-public interface Service {
-	void saveService(User user);
-}

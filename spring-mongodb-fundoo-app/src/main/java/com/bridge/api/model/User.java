@@ -13,13 +13,25 @@ import com.bridge.api.dto.NoteDto;
 public class User {
 	@Id
 	private String userId;
+	private String fname;
 	private String email;
 	private String passWord;
 	private String address;
 	private LocalDate currentDate;
 	private boolean isVerified;
+	private String image;
+	
 	@DBRef
 	private List<Note> notes;
+
+	
+	public String getFname() {
+		return fname;
+	}
+
+	public void setFname(String fname) {
+		this.fname = fname;
+	}
 
 	public String getUserId() {
 		return userId;
@@ -76,10 +88,22 @@ public class User {
 	public void setNotes(List<Note> notes) {
 		this.notes = notes;
 	}
+	public String getImage() {
+		return image;
+	}
+
+	public void setImage(String image) {
+		this.image = image;
+	}
 
 	@Override
 	public String toString() {
-		return "User [userId=" + userId + ", email=" + email + ", passWord=" + passWord + ", address=" + address
-				+ ", currentDate=" + currentDate + ", isVerified=" + isVerified + ", notes=" + notes + "]";
+		return "User [userId=" + userId + ", fname=" + fname + ", email=" + email + ", passWord=" + passWord
+				+ ", address=" + address + ", currentDate=" + currentDate + ", isVerified=" + isVerified + ", image="
+				+ image + ", notes=" + notes + "]";
 	}
+
+	
+
+	
 }

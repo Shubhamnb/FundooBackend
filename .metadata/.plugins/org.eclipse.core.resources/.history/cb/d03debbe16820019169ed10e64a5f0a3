@@ -1,0 +1,293 @@
+package com.bridge.api.service;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.bridge.api.dto.LabelDto;
+import com.bridge.api.dto.NoteDto;
+import com.bridge.api.model.Label;
+import com.bridge.api.model.Note;
+import com.bridge.api.model.User;
+import com.bridge.api.mongo.reposetory.LabelRepository;
+import com.bridge.api.mongo.reposetory.NoteRepository;
+import com.bridge.api.mongo.reposetory.UserRepository;
+import com.bridge.api.util.UserToken;
+
+@Service
+public class NoteServiceImpl implements NoteService {
+
+	@Autowired
+	UserRepository userRepository;
+	
+	@Autowired
+	LabelRepository labelRepository;
+	
+	
+	@Autowired
+	ModelMapper mapper;
+
+	@Autowired
+	MailService mailService;
+
+	@Autowired
+	PasswordEncoder passwordEncoder;
+
+	@Autowired
+	UserToken userToken;
+
+	@Autowired
+	NoteRepository noteRepository;
+
+	/* Method for Save a note in Mongod */
+	@Override
+	public void createNote(NoteDto noteDto, String token) {
+		String userId = userToken.tokenVerify(token);
+		Note note = mapper.map(noteDto, Note.class);
+		note.setCurrentTime(LocalDateTime.now());
+		note.setUpdatedTime(LocalDateTime.now());
+		note.setUserId(userId);
+		noteRepository.save(note);
+		System.out.println(userId);
+		Optional<User> user = userRepository.findById(userId);
+		if (user.isPresent()) {
+			List<Note> noteList = user.get().getNotes();
+			if (noteList != null) {
+				noteList.add(note);
+				user.get().setNotes(noteList);
+				userRepository.save(user.get());
+			} else {
+				List<Note> list = new ArrayList<Note>();
+				list.add(note);
+				user.get().setNotes(list);
+				userRepository.save(user.get());
+			}
+		}
+
+	}
+
+	@Override
+	public String updateNote(NoteDto noteDto, String noteId, String token) {
+		String userId = userToken.tokenVerify(token);
+
+		Note note = noteRepository.findByNoteIdAndUserId(noteId, userId);
+		System.out.println(note);
+		if (note != null) {
+			note.setNoteTitle(noteDto.getNoteTitle());
+			note.setDiscription(noteDto.getDiscription());
+			note.setUpdatedTime(LocalDateTime.now());
+			note.setCurrentTime(LocalDateTime.now());
+
+			Note noteCheck = noteRepository.save(note);
+
+			if (noteCheck != null)
+				return "Note Updated Successfully";
+			else {
+				return "Note not Update";
+			}
+		} else {
+			return "Note not Update";
+		}
+	}
+
+	@Override
+	public String delete(String noteId) {
+		Optional<Note> note = noteRepository.findById(noteId);
+		System.out.println(note);
+		if (note.isPresent()) {
+			Optional<User> user = userRepository.findById(note.get().getUserId());
+			if (user.isPresent()) {
+				System.out.println(user);
+				List<Note> noteList = user.get().getNotes();
+				System.out.println(noteList + " NoteList");
+
+				if (noteList != null) {
+					System.out.println(noteList + " NoteList");
+					Iterator it = noteList.iterator();
+					while (it.hasNext()) {
+						Note userNote = (Note) it.next();
+						if (userNote.getNoteTitle().equals(note.get().getNoteTitle())) {
+							noteList.remove(userNote);
+							break;
+						}
+					}
+					user.get().setNotes(noteList);
+					userRepository.save(user.get());
+				}
+				noteRepository.deleteById(noteId);
+				return "Note Deleted";
+			} else {
+				return "Beacause Note not deleted";
+			}
+
+		} else {
+			return "Note not deleted";
+		}
+
+	}
+
+	@Override
+	public String retrive(String noteId) {
+		Optional<Note> note = noteRepository.findById(noteId);
+		
+		if(note.isPresent()) {
+			return note.get().toString();
+		}else {
+			return "Note List is empty";
+		}
+	}
+
+	@Override
+	public String isPined(String noteId, String token) {
+		String userId = userToken.tokenVerify(token);
+		Optional<Note> note = noteRepository.findById(noteId);
+		if (note.isPresent()) {
+			if(note.get().isPin()) {
+				note.get().setPin(false);
+			}else {
+				note.get().setPin(true);
+			}
+			noteRepository.save(note.get());
+		}
+		return "pin state changed";
+	}
+
+	@Override
+	public String isArchive(String noteId, String token) {
+		String userId = userToken.tokenVerify(token);
+		Optional<Note> note = noteRepository.findById(noteId);
+		if (note.isPresent()) {
+			if(note.get().isArchive()) {
+				note.get().setArchive(false);
+			}else {
+				note.get().setArchive(true);
+			}
+			noteRepository.save(note.get());
+		}
+		return "pin state changed";
+	}
+
+	@Override
+	public String isTrash(String noteId, String token) {
+		String userId = userToken.tokenVerify(token);
+		Optional<Note> note = noteRepository.findById(noteId);
+		if (note.isPresent()) {
+			if(note.get().isTrash()) {
+				note.get().setTrash(false);
+			}else {
+				note.get().setTrash(true);
+			}
+			noteRepository.save(note.get());
+		}
+		return "pin state changed";
+	}
+
+	@Override
+	public String createLabel(LabelDto labelDto, String token) {
+		String userId = userToken.tokenVerify(token);
+		Label label = mapper.map(labelDto, Label.class);
+		label.setUserId(userId);
+		Label label1 = labelRepository.save(label);
+		
+		if(label1 != null)
+			return "Label Created";
+		else
+			return "Label Not Created";
+	}
+
+	@Override
+	public String updateLabel(LabelDto labelDto, String token) {
+		String userId = userToken.tokenVerify(token);
+		Optional<Label> label = labelRepository.findByUserId(userId);
+		if(label.isPresent()) {
+			label.get().setLabelName(labelDto.getLabelName());
+			if(null != labelRepository.save(label.get())){
+				return "updated successfully";
+			}else {
+				return "Update Fail";
+			}
+		}else {
+			return "Update Fail";
+		}
+		
+		
+	}
+
+	@Override
+	public String deleteLabel(String labelId, String token) {
+		String userId = userToken.tokenVerify(token);
+		labelRepository.deleteById(labelId);
+		Optional<Label> label = labelRepository.findById(labelId);
+		if(label.isEmpty())
+			return "Label Deleted";
+		else
+			return "Some problem accurs in label deletion";
+	}
+
+	@Override
+	public String retriveLabel(String labelId, String token) {
+		String userId = userToken.tokenVerify(token);
+		Optional<Label> label = labelRepository.findById(labelId);
+		if(label.isPresent())
+			return label.toString();
+		else
+			return "label not present";
+	}
+
+	@Override
+	public String addLabelToNote(LabelDto labelDto, String noteId) {
+		
+		Optional<Note> note = noteRepository.findById(noteId);
+		
+		Label label = mapper.map(labelDto, Label.class);
+		
+		
+		label.setUserId(note.get().getUserId());
+		if(note.isPresent()) {
+			List<Label> labelList = note.get().getLabelList();
+			if (labelList != null) {
+				labelList.add(label);
+				note.get().setLabelList(labelList);
+			}else {
+				List<Label> newLabelList = new ArrayList<Label>();
+				newLabelList.add(label);
+				note.get().setLabelList(newLabelList);
+			}
+			if(noteRepository.save(note.get()) != null) {
+				return "Label Added to Note Successfully";
+			}else {
+				return "Label is not added";
+			}
+		
+		}else {
+			return "Note Id Not Present";
+		}
+	}
+
+	@Override
+	public String removeLabelFromNote(String labelId, String noteId) {
+		Optional<Note> note  = noteRepository.findById(noteId);
+		if(note.isPresent()) {
+			List<Label> labelList = note.get().getLabelList();
+			if(labelList != null) {
+				Iterator<Label> it = labelList.iterator();
+				while(it.hasNext()) {
+					Label label = it.next();
+					if(label.getId().equals(labelId)) {
+						labelList.remove(label);
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+}

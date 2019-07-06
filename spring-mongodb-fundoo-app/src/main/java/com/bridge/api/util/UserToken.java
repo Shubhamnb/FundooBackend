@@ -37,7 +37,7 @@ public class UserToken {
 		TOKEN = "Shubham";
 
 		String userid;
-// here verify the given token's algorithm
+		// here verify the given token's algorithm
 		Verification verification = null;
 
 		try {

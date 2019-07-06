@@ -1,5 +1,0 @@
-package com.bridge.api.mongo.reposetory;
-
-public interface NoteRepository extends MongoRepository<Note, String>{
-
-}

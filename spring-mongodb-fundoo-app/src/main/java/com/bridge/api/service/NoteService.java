@@ -1,14 +1,16 @@
 package com.bridge.api.service;
 
+import java.io.IOException;
+
 import com.bridge.api.dto.LabelDto;
 import com.bridge.api.dto.NoteDto;
 
-public interface NoteService {
-	void createNote(NoteDto noteDto, String token);
+public interface NoteService{
+	void createNote(NoteDto noteDto, String token)throws IOException;
 
-	String updateNote(NoteDto noteDto, String noteId, String token);
+	String updateNote(NoteDto noteDto, String noteId, String token)throws Exception;
 
-	String delete(String noteId);
+	String delete(String noteId)throws IOException;
 
 	String retrive(String noteId);
 
@@ -26,9 +28,8 @@ public interface NoteService {
 
 	String retriveLabel(String labelId, String token);
 
-	String addLabelToNote(LabelDto labelDto, String noteId);
+	String addLabelToNote(String labelId, String noteId);
 
 	String removeLabelFromNote(String labelId, String noteId);
 
-	
 }
