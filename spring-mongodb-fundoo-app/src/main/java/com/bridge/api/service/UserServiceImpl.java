@@ -1,9 +1,6 @@
 package com.bridge.api.service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import javax.mail.MessagingException;
@@ -13,14 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.bridge.api.dto.NoteDto;
 import com.bridge.api.dto.PasswordDto;
 import com.bridge.api.dto.UserDto;
 import com.bridge.api.model.Email;
-import com.bridge.api.model.Note;
 import com.bridge.api.model.User;
 import com.bridge.api.mongo.reposetory.NoteRepository;
 import com.bridge.api.mongo.reposetory.UserRepository;
+import com.bridge.api.rabbitmq.RabbitMQSender;
 import com.bridge.api.response.ResponseToken;
 import com.bridge.api.util.StatusHelper;
 import com.bridge.api.util.UserToken;
@@ -49,6 +45,9 @@ public class UserServiceImpl implements UserService {
 	UserToken userToken;
 	
 	@Autowired
+	RabbitMQSender rabbitMQSender;
+	
+	@Autowired
 	NoteRepository noteRepository;
 	
 	@Override
@@ -70,8 +69,10 @@ public class UserServiceImpl implements UserService {
 		email.setFrom("bohari2@gmail.com");
 		email.setTo(userDto.getEmail());
 		email.setSubject("Email Verification ");
+		email.setBody("http://localhost:8080/users/emailvalidation?id=" + idToken);
 		try {
-			mailService.send(email, idToken);
+			//mailService.send(email, idToken);
+			rabbitMQSender.send(email);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

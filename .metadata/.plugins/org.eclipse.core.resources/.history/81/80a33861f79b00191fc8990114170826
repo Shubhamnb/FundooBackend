@@ -1,6 +1,0 @@
-package com.bridge.api.dto;
-
-public class PasswordDto {
-	private String newPassword;
-	private String confNewPassword;
-}

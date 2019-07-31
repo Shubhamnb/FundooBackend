@@ -1,5 +1,6 @@
 package com.bridge.api.controller;
 
+import java.net.URL;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +14,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bridge.api.client.AmazonClient;
 import com.bridge.api.dto.LoginDto;
 import com.bridge.api.dto.PasswordDto;
 import com.bridge.api.dto.UserDto;
@@ -28,13 +31,14 @@ import com.bridge.api.util.StatusHelper;
 @RestController
 @RequestMapping("/users")
 @PropertySource("classpath:message.properties")
-@CrossOrigin(origins = "*",allowedHeaders = "*",exposedHeaders= {"jwtToken"})
+@CrossOrigin(origins = "*",allowedHeaders = "*",exposedHeaders= {"token"})
 public class UserController {
 	@Autowired
 	private UserService userService;
 	@Autowired
 	private Environment environment;
-	
+	@Autowired
+	private AmazonClient amazonClient;
 	/**
 	 * This endpoint for new user register
 	 * @param userDto user payload
@@ -113,5 +117,12 @@ public class UserController {
 			 return new ResponseEntity<Response>(response,HttpStatus.OK);
 		}
 	}
+	
+	@GetMapping("/getImage")
+	public URL getImageUrl(@RequestHeader String token) {
+	URL url=amazonClient.getImageUrl(token);
+	return url;
+	}
+
 	 
 }

@@ -3,6 +3,8 @@ package com.bridge.api.client;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Date;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
@@ -85,7 +87,7 @@ public class AmazonClient {
 			String fileUrl = "";
 			File file = convertMultiPartToFile(multipartFile);
 			String fileName = generateFileName(multipartFile);
-			fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
+			fileUrl ="https://"+bucketName+".s3-us-west-2.amazonaws.com/"+fileName;
 			uploadFileTos3bucket(fileName, file);
 			file.delete();
 			user.setImage(fileUrl);
@@ -122,5 +124,24 @@ public class AmazonClient {
 		return response;
 	}
 	
+	
+	public URL getImageUrl(String token) {
+		String userID = userToken.tokenVerify(token);
+		boolean isUser = userRepository.findById(userID).isPresent();
+		if (isUser) {
+			User user = userRepository.findById(userID).get();
+			String imageUrl = user.getImage();
+			URL url = null;
+			try {
+				url = new URL(imageUrl);
+			} catch (MalformedURLException e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			return url;
+		} else {
+			return null;
+		}
+	}
 
 }

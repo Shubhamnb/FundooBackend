@@ -18,7 +18,7 @@ import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.bridge.api.model.Note;
+import com.bridge.api.util.UserToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
@@ -39,10 +40,12 @@ public class ElasticSearchIMPL implements ElasticService {
 
 	@Autowired
 	ObjectMapper objectMapper;
+	@Autowired
+	UserToken userToken;
 
 	@Override
 	public String createNote(Note note) throws IOException {
-
+		System.out.println("Shubham Bohari Elastic");
 		@SuppressWarnings({ "unchecked" })
 		Map<String, Object> documentMappper = objectMapper.convertValue(note, Map.class);
 		@SuppressWarnings("deprecation")
@@ -84,9 +87,13 @@ public class ElasticSearchIMPL implements ElasticService {
 	}
 
 	@Override
-	public List<Note> searchByTitle(String title, String userId) throws IOException {
-		BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("noteTitle", title))
+	public List<Note> searchByTitle(String title, String token) throws IOException {
+		String userId = userToken.tokenVerify(token);
+		QueryBuilder queryBuilder = QueryBuilders.boolQuery()
+				.must(QueryBuilders.queryStringQuery("*"+title+"*").analyzeWildcard(true)
+				.field("title",2.0f).field("discription"))
 				.filter(QueryBuilders.termsQuery("userId", userId));
+
 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 		searchSourceBuilder.query(queryBuilder);
 		SearchRequest searchRequest = new SearchRequest();
